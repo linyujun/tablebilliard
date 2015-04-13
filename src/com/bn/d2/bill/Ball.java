@@ -90,7 +90,7 @@ public class Ball {
 		{
 			if(b!=this && CollisionUtil.collisionCalculate(new float[]{tempX,tempY}, this, b))
 			{
-				if(gameView.activity.isSoundOn()){//²¥·ÅÇòÅö×²µÄÉùÒô
+				if(this.equals(gameView.alBalls.get(0))&&gameView.activity.isSoundOn()){//²¥·ÅÇòÅö×²µÄÉùÒô
 					gameView.playSound(GameView.HIT_SOUND, 0);
 				}
 				canGoFlag=false;

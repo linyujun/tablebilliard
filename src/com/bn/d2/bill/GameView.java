@@ -65,6 +65,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback{
 	SoundPool soundPool;//声音
 	HashMap<Integer, Integer> soundPoolMap; 
 	MediaPlayer mMediaPlayer;	
+	float volume;
 	public static final int SHOOT_SOUND=0;//声音常量
 	public static final int HIT_SOUND=1;
 	public static final int BALL_IN_SOUND=2;
@@ -77,6 +78,37 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback{
 		this.requestFocus();
         this.setFocusableInTouchMode(true);
 		getHolder().addCallback(this);//注册回调接口		
+		
+		
+		paint=new Paint();//创建画笔
+		paint.setAntiAlias(true);//打开抗锯齿
+		createAllThreads();//创建所有线程
+		initBitmap();//初始化位图资源
+		changeBmpsRatio(Constant.ssr.ratio);//改变图片的大小，尽量全屏，但不改变安宽高比
+		changeBmpsRatioFullScreen(Constant.wRatio,Constant.hRatio);//可以变形的图片适应全屏
+		initSounds();//初始化声音资源
+		//初始化背景音乐
+		mMediaPlayer = MediaPlayer.create(activity, R.raw.backsound);
+		mMediaPlayer.setLooping(true);
+		table=new Table(tableBmps);//球台
+		//创建球列表，并加入所有球
+		alBalls=new ArrayList<Ball>();
+		for(int i=0;i<Table.AllBallsPos.length;i++)//1
+		{
+			alBalls.add(new Ball(ballBmps[i],this,0,0,Table.AllBallsPos[i]));
+		}
+		cue=new Cue(cueBmp,alBalls.get(0));//球杆	
+		strengthBar=new StrengthBar(barDownBmp,barUpBmp);//力度条
+		goBtn=new VirtualButton(goDownBmp,goUpBmp,Constant.GO_BTN_X,Constant.GO_BTN_Y);//GO按钮
+		leftBtn=new VirtualButton(leftDownBmp,leftUpBmp,Constant.LEFT_BTN_X,Constant.LEFT_BTN_Y);//左按钮
+		rightBtn=new VirtualButton(rightDownBmp,rightUpBmp,Constant.RIGHT_BTN_X,Constant.RIGHT_BTN_Y);//右按钮
+		aimBtn=new VirtualButton(aimDownBmp,aimUpBmp,Constant.AIM_BTN_X,Constant.AIM_BTN_Y);//右按钮
+		timer=new Timer(this,breakMarkBitmap,numberBitmaps);//创建计时器对象
+		AudioManager mgr = (AudioManager)getContext().getSystemService(Context.AUDIO_SERVICE);   
+	    float streamVolumeCurrent = mgr.getStreamVolume(AudioManager.STREAM_MUSIC);   
+	    float streamVolumeMax = mgr.getStreamMaxVolume(AudioManager.STREAM_MUSIC);       
+	     volume = streamVolumeCurrent / streamVolumeMax;  
+		startAllThreads();//开启线程
 	}
 	@SuppressLint("DrawAllocation")
 	@Override
@@ -196,35 +228,13 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback{
 	@Override
 	public void surfaceCreated(SurfaceHolder holder){
 		Log.i("--------", "GameView--surfaceCreated");
-		paint=new Paint();//创建画笔
-		paint.setAntiAlias(true);//打开抗锯齿
-		createAllThreads();//创建所有线程
-		initBitmap();//初始化位图资源
-		changeBmpsRatio(Constant.ssr.ratio);//改变图片的大小，尽量全屏，但不改变安宽高比
-		changeBmpsRatioFullScreen(Constant.wRatio,Constant.hRatio);//可以变形的图片适应全屏
-		initSounds();//初始化声音资源
-		//初始化背景音乐
 		mMediaPlayer = MediaPlayer.create(activity, R.raw.backsound);
 		mMediaPlayer.setLooping(true);
-		table=new Table(tableBmps);//球台
-		//创建球列表，并加入所有球
-		alBalls=new ArrayList<Ball>();
-		for(int i=0;i<Table.AllBallsPos.length;i++)//1
-		{
-			alBalls.add(new Ball(ballBmps[i],this,0,0,Table.AllBallsPos[i]));
-		}
-		cue=new Cue(cueBmp,alBalls.get(0));//球杆	
-		strengthBar=new StrengthBar(barDownBmp,barUpBmp);//力度条
-		goBtn=new VirtualButton(goDownBmp,goUpBmp,Constant.GO_BTN_X,Constant.GO_BTN_Y);//GO按钮
-		leftBtn=new VirtualButton(leftDownBmp,leftUpBmp,Constant.LEFT_BTN_X,Constant.LEFT_BTN_Y);//左按钮
-		rightBtn=new VirtualButton(rightDownBmp,rightUpBmp,Constant.RIGHT_BTN_X,Constant.RIGHT_BTN_Y);//右按钮
-		aimBtn=new VirtualButton(aimDownBmp,aimUpBmp,Constant.AIM_BTN_X,Constant.AIM_BTN_Y);//右按钮
-		timer=new Timer(this,breakMarkBitmap,numberBitmaps);//创建计时器对象
 		if(activity.isBackGroundMusicOn())//开启背景音乐
 		{
 			mMediaPlayer.start();
 		}
-		startAllThreads();//开启线程
+		startAllWorkThreads();
 	}
 	@Override
 	public void surfaceChanged(SurfaceHolder holder, int format, int width,
@@ -234,222 +244,14 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback{
 	@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {	
 		Log.i("--------", "GameView--surfaceDestroyed");
-		boolean retry = true;        
-		stopAllThreads();
-        while (retry){//不断地循环，直到其它线程结束
-        	joinAllThreads();	      
-            retry = false;
-        }
+		stopAllWorkThreads();
+	
         //停止背景音乐
         if(mMediaPlayer.isPlaying()){
         	mMediaPlayer.stop();
         }
 	}	
-	//将图片加载
-	public void initBitmap(){		
-		tableBmps=new Bitmap[]{
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.table0),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.table1),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.table2),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.table3),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.table4),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.table5),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.table6),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.table7),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.table8),				
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.table9),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.table10),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.table11),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.table12),
-			};				
-		ballBmps=new Bitmap[][]{
-			{
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball00),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball01),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball02),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball00),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball01),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball02),
-			},
-			{
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball10),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball11),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball12),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball10),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball11),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball12),
-			},
-			{
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball20),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball21),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball22),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball20),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball21),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball22),
-			},
-			{
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball30),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball31),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball32),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball30),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball31),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball32),
-			},
-			{
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball40),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball41),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball42),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball40),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball41),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball42),
-			},
-			{
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball50),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball51),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball52),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball50),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball51),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball52),
-			},
-			{
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball60),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball61),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball62),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball60),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball61),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball62),
-			},
-			{
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball70),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball71),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball72),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball70),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball71),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball72),
-			},
-			{
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball80),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball81),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball82),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball80),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball81),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball82),
-			},
-			{
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball90),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball91),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball92),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball90),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball91),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball92),
-			},
-			{
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball100),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball101),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball102),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball100),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball101),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball102),
-			},			
-			{
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball110),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball111),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball112),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball110),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball111),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball112),
-			},
-			{
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball120),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball121),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball122),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball120),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball121),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball122),
-			},
-			{
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball130),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball131),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball132),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball130),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball131),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball132),
-			},
-			{
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball140),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball141),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball142),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball140),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball141),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball142),
-			},
-			{
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball150),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball151),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball152),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball150),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball151),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.ball152),
-			},
-		};		
-		cueBmp=BitmapFactory.decodeResource(this.getResources(), R.drawable.qiu_gan);
-		barDownBmp=BitmapFactory.decodeResource(this.getResources(), R.drawable.ruler);
-		barUpBmp=BitmapFactory.decodeResource(this.getResources(), R.drawable.pointer);		
-		goDownBmp=BitmapFactory.decodeResource(this.getResources(), R.drawable.go_down);
-		goUpBmp=BitmapFactory.decodeResource(this.getResources(), R.drawable.go_up);
-		
-		leftDownBmp=BitmapFactory.decodeResource(this.getResources(), R.drawable.left_down);
-		leftUpBmp=BitmapFactory.decodeResource(this.getResources(), R.drawable.left_up);
-		rightDownBmp=BitmapFactory.decodeResource(this.getResources(), R.drawable.right_down);
-		rightUpBmp=BitmapFactory.decodeResource(this.getResources(), R.drawable.right_up);
-		aimDownBmp=BitmapFactory.decodeResource(this.getResources(), R.drawable.aim_down);
-		aimUpBmp=BitmapFactory.decodeResource(this.getResources(), R.drawable.aim_up);
-		
-		bgBmp=BitmapFactory.decodeResource(this.getResources(), R.drawable.bg);
-		numberBitmaps=new Bitmap[]{
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.number0),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.number1),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.number2),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.number3),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.number4),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.number5),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.number6),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.number7),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.number8),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.number9),
-				BitmapFactory.decodeResource(this.getResources(), R.drawable.number0),
-		};
-		breakMarkBitmap=BitmapFactory.decodeResource(this.getResources(), R.drawable.breakmark);
-	}
-	public void changeBmpsRatio(float ratio){
-		for(int i=0;i<tableBmps.length;i++){
-			tableBmps[i]=PicLoadUtil.scaleToFit(tableBmps[i], ratio);
-		}
-		for(int i=0;i<ballBmps.length;i++){
-			for(int j=0;j<ballBmps[i].length;j++){
-				ballBmps[i][j]=PicLoadUtil.scaleToFit(ballBmps[i][j], ratio);
-			}			
-		}
-		cueBmp=PicLoadUtil.scaleToFit(cueBmp, ratio);
-		barDownBmp=PicLoadUtil.scaleToFit(barDownBmp, ratio);
-		barUpBmp=PicLoadUtil.scaleToFit(barUpBmp, ratio);
-		goDownBmp=PicLoadUtil.scaleToFit(goDownBmp, ratio);
-		goUpBmp=PicLoadUtil.scaleToFit(goUpBmp, ratio);
-		
-		leftDownBmp=PicLoadUtil.scaleToFit(leftDownBmp, ratio);
-		leftUpBmp=PicLoadUtil.scaleToFit(leftUpBmp, ratio);
-		rightDownBmp=PicLoadUtil.scaleToFit(rightDownBmp, ratio);
-		rightUpBmp=PicLoadUtil.scaleToFit(rightUpBmp, ratio);
-		aimDownBmp=PicLoadUtil.scaleToFit(aimDownBmp, ratio);		
-		aimUpBmp=PicLoadUtil.scaleToFit(aimUpBmp, ratio);	
-		for(int i=0;i<numberBitmaps.length;i++){
-			numberBitmaps[i]=PicLoadUtil.scaleToFit(numberBitmaps[i], ratio);
-		}
-		breakMarkBitmap=PicLoadUtil.scaleToFit(breakMarkBitmap, ratio);	
-	}
-	public void changeBmpsRatioFullScreen(float wRatio,float hRatio){
-		bgBmp=PicLoadUtil.scaleToFitFullScreen(bgBmp, wRatio, hRatio);		
-	}
+	
 	void createAllThreads()
 	{
 		drawThread=new GameViewDrawThread(this);//创建绘制线程
@@ -472,8 +274,25 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback{
 		    timeRunningThread.start();//启动计时线程
 		}		
 	}
+	void startAllWorkThreads(){
+		drawThread.setworkFlag(true);  
+		ballGoThread.setworkFlag(true);
+		keyThread.setworkFlag(true);
+		if(activity.coundDownModeFlag){
+			timeRunningThread.setworkFlag(true);		
+		}		
+	}
+	void stopAllWorkThreads(){
+		drawThread.setworkFlag(false);  
+		ballGoThread.setworkFlag(false);
+		keyThread.setworkFlag(false);
+		if(activity.coundDownModeFlag){
+			timeRunningThread.setworkFlag(false);		
+		}		
+	}
 	void stopAllThreads()
 	{
+		stopAllWorkThreads();
 		drawThread.setFlag(false);   
 		ballGoThread.setFlag(false);
 		keyThread.setFlag(false);
@@ -483,6 +302,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback{
 	}
 	void joinAllThreads()
 	{
+		 stopAllThreads();
 		try {
 			drawThread.join();		
 			keyThread.join();
@@ -497,7 +317,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback{
 	//结束游戏的方法
 	public void overGame()
 	{
-        stopAllThreads();
+		
 		//停止背景音乐
         if(mMediaPlayer.isPlaying()){
         	mMediaPlayer.stop();
@@ -508,6 +328,11 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback{
         } 
         else{
         	activity.sendMessage(WhatMessage.GOTO_CHOICE_VIEW);//返回到选择界面
+        }
+        boolean retry = true;        
+        while (retry){//不断地循环，直到其它线程结束
+        	joinAllThreads();	      
+            retry = false;
         }
 	}	
 	//重新绘制的方法
@@ -543,10 +368,213 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback{
 	}
 	//播放声音的方法
 	public void playSound(int sound, int loop) {
-	    AudioManager mgr = (AudioManager)getContext().getSystemService(Context.AUDIO_SERVICE);   
-	    float streamVolumeCurrent = mgr.getStreamVolume(AudioManager.STREAM_MUSIC);   
-	    float streamVolumeMax = mgr.getStreamMaxVolume(AudioManager.STREAM_MUSIC);       
-	    float volume = streamVolumeCurrent / streamVolumeMax;   	    
+	     	    
 	    soundPool.play(soundPoolMap.get(sound), volume, volume, 1, loop, 1f);
 	}
+	
+	//将图片加载
+		public void initBitmap(){		
+			tableBmps=new Bitmap[]{
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.table0),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.table1),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.table2),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.table3),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.table4),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.table5),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.table6),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.table7),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.table8),				
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.table9),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.table10),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.table11),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.table12),
+				};				
+			ballBmps=new Bitmap[][]{
+				{
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball00),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball01),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball02),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball00),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball01),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball02),
+				},
+				{
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball10),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball11),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball12),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball10),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball11),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball12),
+				},
+				{
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball20),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball21),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball22),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball20),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball21),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball22),
+				},
+				{
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball30),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball31),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball32),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball30),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball31),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball32),
+				},
+				{
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball40),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball41),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball42),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball40),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball41),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball42),
+				},
+				{
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball50),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball51),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball52),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball50),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball51),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball52),
+				},
+				{
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball60),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball61),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball62),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball60),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball61),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball62),
+				},
+				{
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball70),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball71),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball72),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball70),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball71),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball72),
+				},
+				{
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball80),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball81),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball82),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball80),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball81),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball82),
+				},
+				{
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball90),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball91),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball92),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball90),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball91),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball92),
+				},
+				{
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball100),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball101),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball102),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball100),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball101),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball102),
+				},			
+				{
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball110),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball111),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball112),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball110),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball111),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball112),
+				},
+				{
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball120),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball121),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball122),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball120),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball121),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball122),
+				},
+				{
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball130),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball131),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball132),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball130),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball131),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball132),
+				},
+				{
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball140),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball141),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball142),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball140),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball141),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball142),
+				},
+				{
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball150),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball151),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball152),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball150),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball151),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.ball152),
+				},
+			};		
+			cueBmp=BitmapFactory.decodeResource(this.getResources(), R.drawable.qiu_gan);
+			barDownBmp=BitmapFactory.decodeResource(this.getResources(), R.drawable.ruler);
+			barUpBmp=BitmapFactory.decodeResource(this.getResources(), R.drawable.pointer);		
+			goDownBmp=BitmapFactory.decodeResource(this.getResources(), R.drawable.go_down);
+			goUpBmp=BitmapFactory.decodeResource(this.getResources(), R.drawable.go_up);
+			
+			leftDownBmp=BitmapFactory.decodeResource(this.getResources(), R.drawable.left_down);
+			leftUpBmp=BitmapFactory.decodeResource(this.getResources(), R.drawable.left_up);
+			rightDownBmp=BitmapFactory.decodeResource(this.getResources(), R.drawable.right_down);
+			rightUpBmp=BitmapFactory.decodeResource(this.getResources(), R.drawable.right_up);
+			aimDownBmp=BitmapFactory.decodeResource(this.getResources(), R.drawable.aim_down);
+			aimUpBmp=BitmapFactory.decodeResource(this.getResources(), R.drawable.aim_up);
+			
+			bgBmp=BitmapFactory.decodeResource(this.getResources(), R.drawable.bg);
+			numberBitmaps=new Bitmap[]{
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.number0),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.number1),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.number2),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.number3),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.number4),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.number5),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.number6),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.number7),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.number8),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.number9),
+					BitmapFactory.decodeResource(this.getResources(), R.drawable.number0),
+			};
+			breakMarkBitmap=BitmapFactory.decodeResource(this.getResources(), R.drawable.breakmark);
+		}
+		public void changeBmpsRatio(float ratio){
+			for(int i=0;i<tableBmps.length;i++){
+				tableBmps[i]=PicLoadUtil.scaleToFit(tableBmps[i], ratio);
+			}
+			for(int i=0;i<ballBmps.length;i++){
+				for(int j=0;j<ballBmps[i].length;j++){
+					ballBmps[i][j]=PicLoadUtil.scaleToFit(ballBmps[i][j], ratio);
+				}			
+			}
+			cueBmp=PicLoadUtil.scaleToFit(cueBmp, ratio);
+			barDownBmp=PicLoadUtil.scaleToFit(barDownBmp, ratio);
+			barUpBmp=PicLoadUtil.scaleToFit(barUpBmp, ratio);
+			goDownBmp=PicLoadUtil.scaleToFit(goDownBmp, ratio);
+			goUpBmp=PicLoadUtil.scaleToFit(goUpBmp, ratio);
+			
+			leftDownBmp=PicLoadUtil.scaleToFit(leftDownBmp, ratio);
+			leftUpBmp=PicLoadUtil.scaleToFit(leftUpBmp, ratio);
+			rightDownBmp=PicLoadUtil.scaleToFit(rightDownBmp, ratio);
+			rightUpBmp=PicLoadUtil.scaleToFit(rightUpBmp, ratio);
+			aimDownBmp=PicLoadUtil.scaleToFit(aimDownBmp, ratio);		
+			aimUpBmp=PicLoadUtil.scaleToFit(aimUpBmp, ratio);	
+			for(int i=0;i<numberBitmaps.length;i++){
+				numberBitmaps[i]=PicLoadUtil.scaleToFit(numberBitmaps[i], ratio);
+			}
+			breakMarkBitmap=PicLoadUtil.scaleToFit(breakMarkBitmap, ratio);	
+		}
+		public void changeBmpsRatioFullScreen(float wRatio,float hRatio){
+			bgBmp=PicLoadUtil.scaleToFitFullScreen(bgBmp, wRatio, hRatio);		
+		}
 }

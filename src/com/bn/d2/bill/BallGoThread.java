@@ -6,7 +6,8 @@ public class BallGoThread extends Thread
 {
 	GameView gameView;
 	//线程是否继续工作的标志位
-	private boolean flag=true;		
+	private boolean flag=false;		
+	private boolean workflag=false;
 	//用于记录删除球的引用
 	ArrayList<Ball> ballsToDelete=new ArrayList<Ball>();//要删除的球的列表
 	private int sleepSpan=7;//线程睡眠时间
@@ -16,7 +17,14 @@ public class BallGoThread extends Thread
 	}
 	public void run()
 	{
-		while(flag)
+		while(flag){
+			 try{
+	            	Thread.sleep(1000);//睡眠指定毫秒数
+	            }
+	            catch(Exception e){
+	            	e.printStackTrace();//打印堆栈信息
+	            }
+		while(workflag)
 		{
 			ballsToDelete.clear();//清除要删除的列表
 			//让所有球走
@@ -59,8 +67,12 @@ public class BallGoThread extends Thread
 				e.printStackTrace();
 			}
 		}
+		}
 	}
 	public void setFlag(boolean flag) {
 		this.flag = flag;
+	}
+	public void setworkFlag(boolean workFlag) {
+		this.workflag = workFlag;
 	}
 }

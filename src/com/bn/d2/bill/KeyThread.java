@@ -3,7 +3,8 @@ package com.bn.d2.bill;
  * 监听触控按键的线程类
  */
 public class KeyThread extends Thread {
-	private boolean flag=true;	
+	private boolean flag=false;	
+	private boolean workflag=false;
 	GameView gameView;
 	private int sleepSpan=40;
 	private float changeSpeedTime=80f;//改变速度的时间点
@@ -14,7 +15,14 @@ public class KeyThread extends Thread {
 	@Override
 	public void run()
 	{
-		while(flag)
+		while(flag){
+			 try{
+	            	Thread.sleep(1000);//睡眠指定毫秒数
+	            }
+	            catch(Exception e){
+	            	e.printStackTrace();//打印堆栈信息
+	            }
+		while(workflag)
 		{
 			if(!((gameView.keyState&0x20)==0))//第6位是1，可以改变按下按钮时间
 			{
@@ -49,8 +57,12 @@ public class KeyThread extends Thread {
             	e.printStackTrace();//打印堆栈信息
             }
 		}
+		}
 	}
 	public void setFlag(boolean flag) {
 		this.flag = flag;
+	}
+	public void setworkFlag(boolean workFlag) {
+		this.workflag = workFlag;
 	}
 }

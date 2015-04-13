@@ -6,7 +6,8 @@ package com.bn.d2.bill;
  */
 public class TimeRunningThread extends Thread {
 	GameView gameView;
-	private boolean flag=true;
+	private boolean flag=false;
+	private boolean workflag=false;
 	private int sleepSpan=1000;		
 	public TimeRunningThread(GameView gameView)
 	{
@@ -15,7 +16,14 @@ public class TimeRunningThread extends Thread {
 	@Override
 	public void run()
 	{
-		while(flag)
+		while(flag){
+			 try{
+	            	Thread.sleep(sleepSpan);//睡眠指定毫秒数
+	            }
+	            catch(Exception e){
+	            	e.printStackTrace();//打印堆栈信息
+	            }
+		while(workflag)
 		{			
 			 try{
 	            	Thread.sleep(sleepSpan);//睡眠指定毫秒数
@@ -25,8 +33,12 @@ public class TimeRunningThread extends Thread {
 	            }
 	            gameView.timer.subtractTime(1);
 		}
+		}
 	}
 	public void setFlag(boolean flag) {
 		this.flag = flag;
+	}
+	public void setworkFlag(boolean workFlag) {
+		this.workflag = workFlag;
 	}
 }

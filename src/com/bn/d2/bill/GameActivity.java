@@ -41,7 +41,7 @@ public class GameActivity extends Activity {
 	ChoiceView choiceView;
 	
 	boolean coundDownModeFlag=true;//是否为倒计时模式的标志
-	private boolean backGroundMusicOn=false;//背景音乐是否开启的标志
+	private boolean backGroundMusicOn=true;//背景音乐是否开启的标志
 	private boolean soundOn=true;//音效是否开启的标志
 	static int initTime=0;//初始化的次数   
     int currScore;//游戏结束后的得分
@@ -123,6 +123,14 @@ public class GameActivity extends Activity {
 		    		gotoChoiceView();
 		    		break;
 		    	case WhatMessage.GOTO_GAME_VIEW:
+		    		gotoMainMenuView();
+		    		boolean retry = true;        
+		            while (retry){//不断地循环，直到其它线程结束
+		            	gameView.joinAllThreads();	      
+		                retry = false;
+		            }
+		            gameView = null;
+		            break;
 		    	case WhatMessage.GOTO_SOUND_CONTORL_VIEW:
 		    	case WhatMessage.GOTO_WIN_VIEW:
 		    	case WhatMessage.GOTO_FAIL_VIEW: 
@@ -169,9 +177,7 @@ public class GameActivity extends Activity {
     private void gotoMainMenuView()
     {
     	//如果游戏正在进行中退出了游戏，先停止游戏中所有线程
-    	if(gameView!=null){
-    		gameView.stopAllThreads();
-    	}
+    	
     	if(mainMenuView==null)
     	{
     		mainMenuView = new MainMenuView(this);
@@ -182,10 +188,11 @@ public class GameActivity extends Activity {
     //去游戏界面
     private void gotoGameView()
     {
-    	if(gameView==null)
+    	if(gameView!=null)
     	{
-    		gameView = new GameView(this);
+    		gameView = null;
     	}
+    	gameView = new GameView(this);
     	this.setContentView(gameView);
     	currentView=WhatMessage.GOTO_GAME_VIEW;
     }
