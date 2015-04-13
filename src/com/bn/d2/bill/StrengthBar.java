@@ -22,8 +22,8 @@ public class StrengthBar {
 	private float rainbowX;//第一个彩虹条的位置
 	private float rainbowY;
 	//关于指示针的量
-	private float pointerWidth;
-	private float pointerHeight;
+	//private float pointerWidth;
+	//private float pointerHeight;
 	public StrengthBar(Bitmap downBmp,Bitmap pointerBmp)
 	{
 		this.downBmp=downBmp;
@@ -33,8 +33,8 @@ public class StrengthBar {
 		currHeight=downBmp.getHeight();
 		rainbowX=Constant.RAINBOW_X+Constant.X_OFFSET;;
 		rainbowY=height+Constant.RAINBOW_Y+Constant.Y_OFFSET;
-		pointerWidth=pointerBmp.getWidth();
-		pointerHeight=pointerBmp.getHeight();
+		//pointerWidth=pointerBmp.getWidth();
+		//pointerHeight=pointerBmp.getHeight();
 	}
 	//绘制力度条的方法
 	public void drawSelf(Canvas canvas,Paint paint)
@@ -52,7 +52,7 @@ public class StrengthBar {
 			canvas.drawRect(rainbowX, yTemp, rainbowX+rainbowWidth, yTemp+rainbowHeight, paint);
 		}
 		//绘制三角指示针
-		canvas.drawBitmap(pointerBmp, x-pointerWidth, rainbowY-((n-1)*(rainbowHeight+rainbowGap))-pointerHeight/2,paint);//绘制底下的条
+		//canvas.drawBitmap(pointerBmp, x-pointerWidth, rainbowY-((n-1)*(rainbowHeight+rainbowGap))-pointerHeight/2,paint);//绘制底下的条
 	}
 	//增加力度的方法
 	public void changeCurrHeight(float pressX, float pressY)

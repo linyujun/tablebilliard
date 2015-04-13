@@ -40,9 +40,9 @@ implements SurfaceHolder.Callback  //实现生命周期回调接口
 		//加载图片
 		logos[0]=BitmapFactory.decodeResource(activity.getResources(), R.drawable.mylogal); 
 		logos[1]=BitmapFactory.decodeResource(activity.getResources(), R.drawable.welcome2);		
-		for(int i=0;i<logos.length;i++){
-			logos[i]=PicLoadUtil.scaleToFit(logos[i], Constant.ssr.ratio);
-		}
+		logos[0]=PicLoadUtil.scaleToFitFullScreen(logos[0], Constant.wRatio, Constant.hRatio);	
+		logos[1]=PicLoadUtil.scaleToFitFullScreen(	logos[1], Constant.wRatio, Constant.hRatio);	
+		
 	}
 	public void onDraw(Canvas canvas){	
 		//绘制黑填充矩形清背景

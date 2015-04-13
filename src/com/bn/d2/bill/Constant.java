@@ -6,8 +6,8 @@ public class Constant {
 	public static int SCREEN_WIDTH;//屏幕的宽度
 	public static int SCREEN_HEIGHT;//屏幕的高度
 	//关于球台的常量
-	public static float BOTTOM_WIDTH=85*2+168*2+95;//整个球台面宽度
-	public static float BOTTOM_HEIGHT=85*2+228;//整个球台面高度	
+	public static float BOTTOM_WIDTH=85*2+180*2+95;//整个球台面宽度
+	public static float BOTTOM_HEIGHT=85*2+250;//整个球台面高度	
 
 	public static float EDGE_BIG=45;//大边缘尺寸
 	public static float EDGE_SMALL=40;//小边缘尺寸
@@ -15,22 +15,21 @@ public class Constant {
 	public static float DIS_CORNER=20;//图片左上顶点和角上四个洞的距离
 	public static float DIS_MIDDLE=30;//图片左上顶点和中间洞的距离
 	
-	//public static float TABLE_X=20;//桌球左上角坐标
-	//public static float TABLE_Y=20;
-public static float TABLE_X=80;//桌球左上角坐标
+	
+public static float TABLE_X=70;//桌球左上角坐标
 public static float TABLE_Y=50;
 	public static float HOLE_CENTER_REVISE=20;//球洞中心坐标修正值
-	public static float CORNER_HOLE_R=23;//四角洞的半径
-	public static float MIDDLE_HOLE_R=32f;//中间洞的半径
+	public static float CORNER_HOLE_R=26;//四角洞的半径
+	public static float MIDDLE_HOLE_R=35f;//中间洞的半径
 	//游戏界面左上角的坐标
 	public static float X_OFFSET;
 	public static float Y_OFFSET;
 	//关于桌球的常量
 	//public static float BALL_SIZE=24;//球直径
-public static float BALL_SIZE=24;//球直径
-	public static float X_OFFESET_BALL1=350;//一号球离桌面左上角初始位置（y值固定，不可调）
+public static float BALL_SIZE=25;//球直径
+	public static float X_OFFESET_BALL1=365;//一号球离桌面左上角初始位置（y值固定，不可调）
 	public static float GAP_BETWEEN_BALLS=3;//球与球之间的初始间隙
-	public static float DIS_WITH_MAIN_BALL=238;//一号球和母球间的距离
+	public static float DIS_WITH_MAIN_BALL=255;//一号球和母球间的距离
 	public static float V_MAX=150;//球的最大速度（规定：球的最大速度不可以超过100）
 	public static float K=1.3f/V_MAX;//换帧速度系数
 	
@@ -49,14 +48,14 @@ public static float RAINBOW_WIDTH=37;//彩虹条宽度
 	public static float RAINBOW_X=BAR_X+7.5f;//第一个彩虹位置调整值
 	public static float RAINBOW_Y=BAR_Y-17;
 	//关于按钮的常量
-public static float GO_BTN_X=690;//go按钮位置
+public static float GO_BTN_X=700;//go按钮位置
 public static float GO_BTN_Y=370;
 	public static float LEFT_BTN_X=5;//左按钮位置
 	public static float LEFT_BTN_Y=110;
 	public static float RIGHT_BTN_X=LEFT_BTN_X;//右按钮位置
-	public static float RIGHT_BTN_Y=LEFT_BTN_Y+220;
+	public static float RIGHT_BTN_Y=LEFT_BTN_Y+240;
 	public static float AIM_BTN_X=LEFT_BTN_X;//目标按钮位置
-	public static float AIM_BTN_Y=LEFT_BTN_Y+115;
+	public static float AIM_BTN_Y=LEFT_BTN_Y+125;
 	public static float CHOICE_BTN_Y0=180;//选项按钮
 	public static float CHOICE_BTN_Y1=CHOICE_BTN_Y0+90;//选项按钮
 	public static float CHOICE_BTN_Y2=CHOICE_BTN_Y1+90;//选项按钮

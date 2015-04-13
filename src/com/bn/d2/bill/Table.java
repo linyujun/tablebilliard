@@ -6,13 +6,13 @@ import android.graphics.Paint;
 
 //球台类
 public class Table {
-	static final float x=Constant.TABLE_X;
+	static final float x=Constant.TABLE_X;//球桌起点坐标
 	static final float y=Constant.TABLE_Y;
 	Bitmap[] bitmaps;
 	//Constant类中的常量值
-	static final float bottomWidth=Constant.BOTTOM_WIDTH;
+	static final float bottomWidth=Constant.BOTTOM_WIDTH;//球桌宽高
 	static final float bottomHeight=Constant.BOTTOM_HEIGHT;
-	static final float edgeBig=Constant.EDGE_BIG;
+	static final float edgeBig=Constant.EDGE_BIG;//边的宽度
 	static final float edgeSmall=Constant.EDGE_SMALL;
 	static final float middle=Constant.MIDDLE;
 	static final float disCorner=Constant.DIS_CORNER;
@@ -23,7 +23,7 @@ public class Table {
 	//各直线长度
 	static final float ab=(tableAreaWidth-middle)/2-edgeSmall;
 	static final float ef=TableAreaHeight-edgeSmall*2;
-	//各直线的坐标
+	//各直线的坐标,可以绘制直线的矩形位置
 	static final float lkx=x+edgeBig;//直线lk的x坐标
 	static final float efx=lkx+tableAreaWidth;
 	static final float ady=y+edgeBig;
