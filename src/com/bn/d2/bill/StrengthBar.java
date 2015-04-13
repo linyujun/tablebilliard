@@ -13,8 +13,8 @@ public class StrengthBar {
 	private float width;//力度条宽度
 	private float height;//力度条总高度		
 	private float currHeight;//力度条当前高度
-	private int extendX=50;//虚拟按钮触控面积扩大的尺寸
-	private int extendY=10;//虚拟按钮触控面积扩大的尺寸
+	private int extendX=30;//虚拟按钮触控面积扩大的尺寸
+	private int extendY=30;//虚拟按钮触控面积扩大的尺寸
 	//关于彩虹条的量
 	private float rainbowWidth=Constant.RAINBOW_WIDTH;//彩虹条宽度
 	private float rainbowHeight=Constant.RAINBOW_HEIGHT;//彩虹条高度

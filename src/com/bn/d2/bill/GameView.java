@@ -90,7 +90,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback{
 		for(Ball b:alBallsTemp){
 			b.drawSelf(canvas, paint);
 		}	
-		cue.drawSelf(canvas, paint);//绘制球杆		
+				
 		strengthBar.drawSelf(canvas,paint);//绘制力度条
 		goBtn.drawSelf(canvas, paint);//绘制GO按钮
 		leftBtn.drawSelf(canvas, paint);//绘制左按钮
@@ -99,6 +99,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback{
 		if(activity.coundDownModeFlag){
 			timer.drawSelf(canvas, paint);//绘制时间
 		}		
+		cue.drawSelf(canvas, paint);//绘制球杆
 	}
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {

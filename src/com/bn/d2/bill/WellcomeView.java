@@ -38,8 +38,8 @@ implements SurfaceHolder.Callback  //实现生命周期回调接口
 		paint = new Paint();//创建画笔
 		paint.setAntiAlias(true);//打开抗锯齿
 		//加载图片
-		logos[0]=BitmapFactory.decodeResource(activity.getResources(), R.drawable.dukea); 
-		logos[1]=BitmapFactory.decodeResource(activity.getResources(), R.drawable.dukeb);		
+		logos[0]=BitmapFactory.decodeResource(activity.getResources(), R.drawable.mylogal); 
+		logos[1]=BitmapFactory.decodeResource(activity.getResources(), R.drawable.welcome2);		
 		for(int i=0;i<logos.length;i++){
 			logos[i]=PicLoadUtil.scaleToFit(logos[i], Constant.ssr.ratio);
 		}
