@@ -16,12 +16,7 @@ public class KeyThread extends Thread {
 	public void run()
 	{
 		while(flag){
-			 try{
-	            	Thread.sleep(1000);//睡眠指定毫秒数
-	            }
-	            catch(Exception e){
-	            	e.printStackTrace();//打印堆栈信息
-	            }
+			 
 		while(workflag)
 		{
 			if(!((gameView.keyState&0x20)==0))//第6位是1，可以改变按下按钮时间
@@ -57,6 +52,12 @@ public class KeyThread extends Thread {
             	e.printStackTrace();//打印堆栈信息
             }
 		}
+		try{
+        	Thread.sleep(1000);//睡眠指定毫秒数
+        }
+        catch(Exception e){
+        	e.printStackTrace();//打印堆栈信息
+        }
 		}
 	}
 	public void setFlag(boolean flag) {

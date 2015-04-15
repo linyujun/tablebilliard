@@ -17,12 +17,7 @@ public class TimeRunningThread extends Thread {
 	public void run()
 	{
 		while(flag){
-			 try{
-	            	Thread.sleep(sleepSpan);//睡眠指定毫秒数
-	            }
-	            catch(Exception e){
-	            	e.printStackTrace();//打印堆栈信息
-	            }
+			 
 		while(workflag)
 		{			
 			 try{
@@ -33,6 +28,12 @@ public class TimeRunningThread extends Thread {
 	            }
 	            gameView.timer.subtractTime(1);
 		}
+		try{
+        	Thread.sleep(sleepSpan);//睡眠指定毫秒数
+        }
+        catch(Exception e){
+        	e.printStackTrace();//打印堆栈信息
+        }
 		}
 	}
 	public void setFlag(boolean flag) {

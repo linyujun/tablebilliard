@@ -18,6 +18,7 @@ public class Constant {
 	
 public static float TABLE_X=70;//桌球左上角坐标
 public static float TABLE_Y=50;
+
 	public static float HOLE_CENTER_REVISE=20;//球洞中心坐标修正值
 	public static float CORNER_HOLE_R=26;//四角洞的半径
 	public static float MIDDLE_HOLE_R=35f;//中间洞的半径
@@ -31,7 +32,7 @@ public static float BALL_SIZE=25;//球直径
 	public static float GAP_BETWEEN_BALLS=3;//球与球之间的初始间隙
 	public static float DIS_WITH_MAIN_BALL=255;//一号球和母球间的距离
 	public static float V_MAX=150;//球的最大速度（规定：球的最大速度不可以超过100）
-	public static float K=1.3f/V_MAX;//换帧速度系数
+	public static float K=1.2f/V_MAX;//换帧速度系数
 	
 	public static float TIME_SPAN=0.05f;//球运动的模拟时间间隔（规定: timeSpan不可以>=Ball.d）
 	public static float V_ATTENUATION=0.996f;//速度衰减比例

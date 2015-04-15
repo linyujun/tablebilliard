@@ -1,5 +1,9 @@
 package com.bn.d2.bill;
+import android.R.integer;
 import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.content.pm.ActivityInfo;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -8,6 +12,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Window;
 import android.view.WindowManager;
@@ -28,6 +33,7 @@ class WhatMessage{
 	public static final int OVER_GAME=20;//游戏结束	
 }
 public class GameActivity extends Activity {
+
 	int currentView;//标识当前的界面
 	WellcomeView wellcomeView;//显示欢迎动画界面
 	MainMenuView mainMenuView;//主菜单界面
@@ -91,6 +97,7 @@ public class GameActivity extends Activity {
     public void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);    
         //全屏
+        Log.i("----------------", "gameactivity  onCreate");
 		requestWindowFeature(Window.FEATURE_NO_TITLE); 
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN ,  
 		              WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -411,4 +418,73 @@ public class GameActivity extends Activity {
 		}
     	
     }
+    
+	@Override
+	protected void onRestoreInstanceState(Bundle savedInstanceState) {
+		// TODO Auto-generated method stub
+		super.onRestoreInstanceState(savedInstanceState);
+		Log.i("=================", "onRestoreInstanceState");
+		SharedPreferences p = this.getSharedPreferences("WhatMessage",
+				Context.MODE_PRIVATE);
+		int cv = Integer.parseInt(  p.getString("currentView", "")) ;
+		switch(cv)
+    	{
+    	case WhatMessage.GOTO_MAIN_MENU_VIEW:
+    		gotoMainMenuView();
+    		break;
+    	case WhatMessage.GOTO_GAME_VIEW:
+    		//gotoGameView();
+    		break;
+    	case WhatMessage.GOTO_SOUND_CONTORL_VIEW:
+    		gotoSoundControlView();
+    		break;
+    	case WhatMessage.GOTO_WIN_VIEW:
+    		gotoWinView();
+    		break;
+    	case WhatMessage.GOTO_FAIL_VIEW:
+    		gotoFailView();
+    		break;
+    	case WhatMessage.GOTO_HIGH_SCORE_VIEW:
+    		gotoHighScoreView();
+    		break;
+    	case WhatMessage.GOTO_WELLCOME_VIEW:
+    		gotoWellcomeView();
+    		break;
+    	case WhatMessage.GOTO_HELP_VIEW:
+    		gotoHelpView();
+    		break;
+    	case WhatMessage.GOTO_ABOUT_VIEW:
+    		gotoAboutView();
+    		break;
+    	case WhatMessage.GOTO_CHOICE_VIEW:
+    		gotoChoiceView();
+    		break;
+    	case WhatMessage.OVER_GAME:
+    		goToOverView();
+    		break;
+    	}
+	}
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		// TODO Auto-generated method stub
+		super.onSaveInstanceState(outState);
+		Log.i("=================", "onSaveInstanceState");
+		SharedPreferences preferences = this.getSharedPreferences(
+				"WhatMessage", Context.MODE_PRIVATE);
+		Editor editor = preferences.edit();
+		editor.putString("currentView", ""+currentView);
+		 editor.commit();
+	}
+	@Override
+	protected void onPause() {
+		// TODO Auto-generated method stub
+		super.onPause();
+		Log.i("=================", "onPause");
+	}
+	@Override
+	protected void onResume() {
+		// TODO Auto-generated method stub
+		super.onResume();
+		Log.i("=================", "onResume");
+	}
 }
